@@ -229,321 +229,317 @@
   </main>
 
   <script>
-// --- Supabase Setup & Session Check ---
-const supabase = supabase.createClient('https://thiqiwptecjozwgbepvg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I');
-let currentUser = null;
-let boardData = { backlog: [], todo: [], inprogress: [], done: [] };
-let allScrumNotes = [];
+    // --- Supabase Setup & Session Check ---
+    const supabaseClient = supabase.createClient('https://thiqiwptecjozwgbepvg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I');
+    let currentUser = null;
+    let boardData = { backlog: [], todo: [], inprogress: [], done: [] };
+    let allScrumNotes = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Check session
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = 'login.html';
-    return;
-  }
-  currentUser = session.user;
-  await fetchBoardFromSupabase();
-  await loadLatestScrumNote();
-  await loadScrumNotesHistory();
-  subscribeToTaskChanges();
-  subscribeToScrumNotesChanges();
-});
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check session
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = session.user;
+      await fetchBoardFromSupabase();
+      await loadLatestScrumNote();
+      await loadScrumNotesHistory();
+      subscribeToTaskChanges();
+      subscribeToScrumNotesChanges();
+    });
 
-// --- Real-Time Subscriptions ---
+    // --- Real-Time Subscriptions ---
+    function subscribeToTaskChanges() {
+      supabaseClient
+        .channel('public:tasks')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${currentUser.id}` },
+          payload => {
+            fetchBoardFromSupabase();
+          }
+        )
+        .subscribe();
+    }
 
-function subscribeToTaskChanges() {
-  supabase
-    .channel('public:tasks')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${currentUser.id}` },
-      payload => {
+    function subscribeToScrumNotesChanges() {
+      supabaseClient
+        .channel('public:scrum_notes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'scrum_notes', filter: `user_id=eq.${currentUser.id}` },
+          payload => {
+            loadScrumNotesHistory();
+            loadLatestScrumNote();
+          }
+        )
+        .subscribe();
+    }
+
+    // --- Scrum Board ---
+    async function fetchBoardFromSupabase() {
+      const { data, error } = await supabaseClient
+        .from('tasks')
+        .select('*')
+        .eq('user_id', currentUser.id);
+
+      boardData = { backlog: [], todo: [], inprogress: [], done: [] };
+
+      if (data) {
+        data.forEach(task => {
+          if (boardData[task.status]) boardData[task.status].push(task);
+        });
+        Object.keys(boardData).forEach(col => {
+          boardData[col].sort((a, b) => b.priority - a.priority);
+        });
+      }
+      renderBoard();
+    }
+
+    function renderBoard() {
+      Object.keys(boardData).forEach(column => {
+        const list = document.getElementById(column);
+        list.innerHTML = '';
+        boardData[column].forEach((task, index) => {
+          const taskEl = document.createElement('div');
+          taskEl.className = `task priority-${task.priority}`;
+          taskEl.draggable = true;
+
+          const taskText = document.createElement('span');
+          taskText.textContent = task.text;
+          taskText.contentEditable = true;
+          taskText.addEventListener('blur', async () => {
+            task.text = taskText.textContent.trim();
+            await supabaseClient.from('tasks').update({ text: task.text }).eq('id', task.id);
+            fetchBoardFromSupabase();
+          });
+
+          const stars = document.createElement('span');
+          stars.className = 'stars';
+          stars.innerHTML = getStarsHTML(task.priority);
+          stars.addEventListener('click', async e => {
+            const clickedStar = [...stars.children].indexOf(e.target) + 1;
+            task.priority = clickedStar;
+            await supabaseClient.from('tasks').update({ priority: clickedStar }).eq('id', task.id);
+            fetchBoardFromSupabase();
+          });
+
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '🗑';
+          delBtn.style.marginLeft = '8px';
+          delBtn.onclick = async () => {
+            await supabaseClient.from('tasks').delete().eq('id', task.id);
+            fetchBoardFromSupabase();
+          };
+
+          taskEl.appendChild(taskText);
+          taskEl.appendChild(stars);
+          taskEl.appendChild(delBtn);
+
+          taskEl.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('text/plain', `${column},${index}`);
+          });
+
+          list.appendChild(taskEl);
+        });
+
+        list.ondragover = e => e.preventDefault();
+        list.ondrop = async e => {
+          const [fromColumn, fromIndex] = e.dataTransfer.getData('text/plain').split(',');
+          const task = boardData[fromColumn][fromIndex];
+          await supabaseClient.from('tasks').update({ status: column }).eq('id', task.id);
+          fetchBoardFromSupabase();
+        };
+      });
+    }
+
+    function getStarsHTML(priority) {
+      let html = '';
+      for (let i = 1; i <= 3; i++) {
+        html += `<span>${i <= priority ? '★' : '☆'}</span>`;
+      }
+      return html;
+    }
+
+    async function addTask(column) {
+      const input = document.querySelector(`[data-column="${column}"] input`);
+      const text = input.value.trim();
+      if (text) {
+        await supabaseClient.from('tasks').insert([{
+          text,
+          priority: 1,
+          status: column,
+          user_id: currentUser.id
+        }]);
+        input.value = '';
         fetchBoardFromSupabase();
       }
-    )
-    .subscribe();
-}
+    }
 
-function subscribeToScrumNotesChanges() {
-  supabase
-    .channel('public:scrum_notes')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'scrum_notes', filter: `user_id=eq.${currentUser.id}` },
-      payload => {
-        loadScrumNotesHistory();
-        loadLatestScrumNote();
+    // --- Scrum Wizard ---
+    async function saveDailyScrum() {
+      const yesterday = document.getElementById('yesterday').value.trim();
+      const today = document.getElementById('today').value.trim();
+      const blockers = document.getElementById('blockers').value.trim();
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+
+      const { data: existing, error: fetchErr } = await supabaseClient
+        .from('scrum_notes')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .gte('created_at', dateStr + 'T00:00:00.000Z')
+        .lt('created_at', dateStr + 'T23:59:59.999Z')
+        .maybeSingle();
+
+      if (existing && existing.id) {
+        await supabaseClient
+          .from('scrum_notes')
+          .update({ yesterday, today, blockers })
+          .eq('id', existing.id);
+        alert("Today's scrum notes updated!");
+      } else {
+        await supabaseClient.from('scrum_notes').insert([{
+          user_id: currentUser.id,
+          yesterday, today, blockers
+        }]);
+        alert("Today's scrum notes saved!");
       }
-    )
-    .subscribe();
-}
+      await loadLatestScrumNote();
+      await loadScrumNotesHistory();
+    }
 
-// --- Scrum Board ---
-async function fetchBoardFromSupabase() {
-  const { data, error } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('user_id', currentUser.id);
+    async function loadLatestScrumNote() {
+      const { data, error } = await supabaseClient
+        .from('scrum_notes')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-  boardData = { backlog: [], todo: [], inprogress: [], done: [] };
+      if (data) {
+        document.getElementById('yesterday').value = data.yesterday || '';
+        document.getElementById('today').value = data.today || '';
+        document.getElementById('blockers').value = data.blockers || '';
+      }
+    }
 
-  if (data) {
-    data.forEach(task => {
-      if (boardData[task.status]) boardData[task.status].push(task);
-    });
-    Object.keys(boardData).forEach(col => {
-      boardData[col].sort((a, b) => b.priority - a.priority);
-    });
-  }
-  renderBoard();
-}
+    // --- Scrum History: load, search, and edit ---
+    async function loadScrumNotesHistory() {
+      const notesListDiv = document.getElementById('scrum-notes-list');
+      notesListDiv.textContent = 'Loading...';
 
-function renderBoard() {
-  Object.keys(boardData).forEach(column => {
-    const list = document.getElementById(column);
-    list.innerHTML = '';
-    boardData[column].forEach((task, index) => {
-      const taskEl = document.createElement('div');
-      taskEl.className = `task priority-${task.priority}`;
-      taskEl.draggable = true;
+      const { data, error } = await supabaseClient
+        .from('scrum_notes')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
 
-      const taskText = document.createElement('span');
-      taskText.textContent = task.text;
-      taskText.contentEditable = true;
-      taskText.addEventListener('blur', async () => {
-        task.text = taskText.textContent.trim();
-        await supabase.from('tasks').update({ text: task.text }).eq('id', task.id);
-        fetchBoardFromSupabase();
+      if (error) {
+        notesListDiv.textContent = 'Error loading history!';
+        return;
+      }
+      if (!data || data.length === 0) {
+        notesListDiv.textContent = 'No scrum notes found.';
+        return;
+      }
+
+      allScrumNotes = data; // Store for search/filter use
+      renderScrumNotesList(data);
+    }
+
+    function renderScrumNotesList(notes) {
+      const notesListDiv = document.getElementById('scrum-notes-list');
+      notesListDiv.innerHTML = '';
+
+      notes.forEach(note => {
+        const entry = document.createElement('div');
+        entry.className = 'scrum-note-entry';
+        const date = new Date(note.created_at).toLocaleString();
+
+        entry.innerHTML = `
+          <div class="scrum-note-date">${date}</div>
+          <div><strong>Yesterday:</strong> <span class="note-yesterday">${escapeHTML(note.yesterday || '-')}</span></div>
+          <div><strong>Today:</strong> <span class="note-today">${escapeHTML(note.today || '-')}</span></div>
+          <div><strong>Blockers:</strong> <span class="note-blockers">${escapeHTML(note.blockers || '-')}</span></div>
+          <button class="edit-scrum-btn" data-id="${note.id}" style="margin-top:0.5em;">Edit</button>
+        `;
+        notesListDiv.appendChild(entry);
       });
 
-      const stars = document.createElement('span');
-      stars.className = 'stars';
-      stars.innerHTML = getStarsHTML(task.priority);
-      stars.addEventListener('click', async e => {
-        const clickedStar = [...stars.children].indexOf(e.target) + 1;
-        task.priority = clickedStar;
-        await supabase.from('tasks').update({ priority: clickedStar }).eq('id', task.id);
-        fetchBoardFromSupabase();
+      document.querySelectorAll('.edit-scrum-btn').forEach(btn => {
+        btn.onclick = () => startEditScrumNote(btn.getAttribute('data-id'));
       });
+    }
 
-      const delBtn = document.createElement('button');
-      delBtn.textContent = '🗑';
-      delBtn.style.marginLeft = '8px';
-      delBtn.onclick = async () => {
-        await supabase.from('tasks').delete().eq('id', task.id);
-        fetchBoardFromSupabase();
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchBox = document.getElementById('scrum-search');
+      if (searchBox) {
+        searchBox.addEventListener('input', function () {
+          const q = this.value.toLowerCase();
+          const filtered = allScrumNotes.filter(note =>
+            (note.yesterday && note.yesterday.toLowerCase().includes(q)) ||
+            (note.today && note.today.toLowerCase().includes(q)) ||
+            (note.blockers && note.blockers.toLowerCase().includes(q))
+          );
+          renderScrumNotesList(filtered);
+        });
+      }
+    });
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, function (m) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[m];
+      });
+    }
+
+    function startEditScrumNote(noteId) {
+      const note = allScrumNotes.find(n => n.id === noteId);
+      if (!note) return;
+      const notesListDiv = document.getElementById('scrum-notes-list');
+      notesListDiv.innerHTML = '';
+
+      // Show editable form for this note
+      const entry = document.createElement('div');
+      entry.className = 'scrum-note-entry';
+      const date = new Date(note.created_at).toLocaleString();
+
+      entry.innerHTML = `
+        <div class="scrum-note-date">${date}</div>
+        <div><strong>Yesterday:</strong><br><textarea id="edit-yesterday" rows="2" style="width:100%">${escapeHTML(note.yesterday || '')}</textarea></div>
+        <div><strong>Today:</strong><br><textarea id="edit-today" rows="2" style="width:100%">${escapeHTML(note.today || '')}</textarea></div>
+        <div><strong>Blockers:</strong><br><textarea id="edit-blockers" rows="2" style="width:100%">${escapeHTML(note.blockers || '')}</textarea></div>
+        <button id="save-edit-btn" style="margin-top:0.7em;">Save</button>
+        <button id="cancel-edit-btn" style="margin-top:0.7em;margin-left:0.7em;">Cancel</button>
+      `;
+      notesListDiv.appendChild(entry);
+
+      document.getElementById('save-edit-btn').onclick = async () => {
+        const updated = {
+          yesterday: document.getElementById('edit-yesterday').value,
+          today: document.getElementById('edit-today').value,
+          blockers: document.getElementById('edit-blockers').value
+        };
+        await supabaseClient.from('scrum_notes').update(updated).eq('id', noteId);
+        await loadScrumNotesHistory();
       };
 
-      taskEl.appendChild(taskText);
-      taskEl.appendChild(stars);
-      taskEl.appendChild(delBtn);
+      document.getElementById('cancel-edit-btn').onclick = loadScrumNotesHistory;
+    }
 
-      taskEl.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('text/plain', `${column},${index}`);
-      });
-
-      list.appendChild(taskEl);
-    });
-
-    list.ondragover = e => e.preventDefault();
-    list.ondrop = async e => {
-      const [fromColumn, fromIndex] = e.dataTransfer.getData('text/plain').split(',');
-      const task = boardData[fromColumn][fromIndex];
-      await supabase.from('tasks').update({ status: column }).eq('id', task.id);
-      fetchBoardFromSupabase();
-    };
-  });
-}
-
-function getStarsHTML(priority) {
-  let html = '';
-  for (let i = 1; i <= 3; i++) {
-    html += `<span>${i <= priority ? '★' : '☆'}</span>`;
-  }
-  return html;
-}
-
-async function addTask(column) {
-  const input = document.querySelector(`[data-column="${column}"] input`);
-  const text = input.value.trim();
-  if (text) {
-    await supabase.from('tasks').insert([{
-      text,
-      priority: 1,
-      status: column,
-      user_id: currentUser.id
-    }]);
-    input.value = '';
-    fetchBoardFromSupabase();
-  }
-}
-
-// --- Scrum Wizard ---
-
-async function saveDailyScrum() {
-  const yesterday = document.getElementById('yesterday').value.trim();
-  const today = document.getElementById('today').value.trim();
-  const blockers = document.getElementById('blockers').value.trim();
-
-  const dateStr = new Date().toISOString().slice(0, 10);
-
-  const { data: existing, error: fetchErr } = await supabase
-    .from('scrum_notes')
-    .select('id')
-    .eq('user_id', currentUser.id)
-    .gte('created_at', dateStr + 'T00:00:00.000Z')
-    .lt('created_at', dateStr + 'T23:59:59.999Z')
-    .maybeSingle();
-
-  if (existing && existing.id) {
-    await supabase
-      .from('scrum_notes')
-      .update({ yesterday, today, blockers })
-      .eq('id', existing.id);
-    alert("Today's scrum notes updated!");
-  } else {
-    await supabase.from('scrum_notes').insert([{
-      user_id: currentUser.id,
-      yesterday, today, blockers
-    }]);
-    alert("Today's scrum notes saved!");
-  }
-  await loadLatestScrumNote();
-  await loadScrumNotesHistory();
-}
-
-async function loadLatestScrumNote() {
-  const { data, error } = await supabase
-    .from('scrum_notes')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (data) {
-    document.getElementById('yesterday').value = data.yesterday || '';
-    document.getElementById('today').value = data.today || '';
-    document.getElementById('blockers').value = data.blockers || '';
-  }
-}
-
-// --- Scrum History: load, search, and edit ---
-async function loadScrumNotesHistory() {
-  const notesListDiv = document.getElementById('scrum-notes-list');
-  notesListDiv.textContent = 'Loading...';
-
-  const { data, error } = await supabase
-    .from('scrum_notes')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    notesListDiv.textContent = 'Error loading history!';
-    return;
-  }
-  if (!data || data.length === 0) {
-    notesListDiv.textContent = 'No scrum notes found.';
-    return;
-  }
-
-  allScrumNotes = data; // Store for search/filter use
-  renderScrumNotesList(data);
-}
-
-function renderScrumNotesList(notes) {
-  const notesListDiv = document.getElementById('scrum-notes-list');
-  notesListDiv.innerHTML = '';
-
-  notes.forEach(note => {
-    const entry = document.createElement('div');
-    entry.className = 'scrum-note-entry';
-    const date = new Date(note.created_at).toLocaleString();
-
-    entry.innerHTML = `
-      <div class="scrum-note-date">${date}</div>
-      <div><strong>Yesterday:</strong> <span class="note-yesterday">${escapeHTML(note.yesterday || '-')}</span></div>
-      <div><strong>Today:</strong> <span class="note-today">${escapeHTML(note.today || '-')}</span></div>
-      <div><strong>Blockers:</strong> <span class="note-blockers">${escapeHTML(note.blockers || '-')}</span></div>
-      <button class="edit-scrum-btn" data-id="${note.id}" style="margin-top:0.5em;">Edit</button>
-    `;
-    notesListDiv.appendChild(entry);
-  });
-
-  document.querySelectorAll('.edit-scrum-btn').forEach(btn => {
-    btn.onclick = () => startEditScrumNote(btn.getAttribute('data-id'));
-  });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const searchBox = document.getElementById('scrum-search');
-  if (searchBox) {
-    searchBox.addEventListener('input', function () {
-      const q = this.value.toLowerCase();
-      const filtered = allScrumNotes.filter(note =>
-        (note.yesterday && note.yesterday.toLowerCase().includes(q)) ||
-        (note.today && note.today.toLowerCase().includes(q)) ||
-        (note.blockers && note.blockers.toLowerCase().includes(q))
-      );
-      renderScrumNotesList(filtered);
-    });
-  }
-});
-
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function (m) {
-    return ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    })[m];
-  });
-}
-
-function startEditScrumNote(noteId) {
-  const note = allScrumNotes.find(n => n.id === noteId);
-  if (!note) return;
-  const notesListDiv = document.getElementById('scrum-notes-list');
-  notesListDiv.innerHTML = '';
-
-  // Show editable form for this note
-  const entry = document.createElement('div');
-  entry.className = 'scrum-note-entry';
-  const date = new Date(note.created_at).toLocaleString();
-
-  entry.innerHTML = `
-    <div class="scrum-note-date">${date}</div>
-    <div><strong>Yesterday:</strong><br><textarea id="edit-yesterday" rows="2" style="width:100%">${escapeHTML(note.yesterday || '')}</textarea></div>
-    <div><strong>Today:</strong><br><textarea id="edit-today" rows="2" style="width:100%">${escapeHTML(note.today || '')}</textarea></div>
-    <div><strong>Blockers:</strong><br><textarea id="edit-blockers" rows="2" style="width:100%">${escapeHTML(note.blockers || '')}</textarea></div>
-    <button id="save-edit-btn" style="margin-top:0.7em;">Save</button>
-    <button id="cancel-edit-btn" style="margin-top:0.7em;margin-left:0.7em;">Cancel</button>
-  `;
-  notesListDiv.appendChild(entry);
-
-  document.getElementById('save-edit-btn').onclick = async () => {
-    const updated = {
-      yesterday: document.getElementById('edit-yesterday').value,
-      today: document.getElementById('edit-today').value,
-      blockers: document.getElementById('edit-blockers').value
-    };
-    await supabase.from('scrum_notes').update(updated).eq('id', noteId);
-    await loadScrumNotesHistory();
-  };
-
-  document.getElementById('cancel-edit-btn').onclick = loadScrumNotesHistory;
-}
-
-async function logout() {
-  await supabase.auth.signOut();
-  window.location.href = 'login.html';
-}
-
-
-</script>
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'login.html';
+    }
+  </script>
 </body>
 </html>
