@@ -113,7 +113,7 @@
   </div>
   <script>
     // Supabase setup
-    const supabase = supabase.createClient(
+    const supabaseClient = supabase.createClient(
       'https://thiqiwptecjozwgbepvg.supabase.co',
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I'
     );
@@ -126,7 +126,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       // Auth check
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
         window.location.href = 'login.html';
         return;
@@ -136,7 +136,7 @@
 
     async function renderDailyWaffle(user) {
       // Fetch tasks
-      const { data: tasks } = await supabase
+      const { data: tasks } = await supabaseClient
         .from('tasks')
         .select('*')
         .eq('user_id', user.id);
