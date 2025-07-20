@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login - Scrum App</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <style>
@@ -20,7 +20,7 @@
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      width: 300px;
+      width: 320px;
     }
     h2 {
       margin-bottom: 1rem;
@@ -41,6 +41,7 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      margin-top: 0.5rem;
     }
     .link {
       margin-top: 1rem;
@@ -50,37 +51,68 @@
       color: #3498db;
       text-decoration: none;
     }
+    .tip {
+      font-size: 0.95rem;
+      color: #888;
+      margin-bottom: 1.2rem;
+      text-align: center;
+      margin-top: -0.5rem;
+    }
+    .error-msg {
+      color: #e74c3c;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
+    <div class="tip">
+      Please use your <b>email address</b> and password to log in.<br>
+      (Usernames cannot be used to log in.)
+    </div>
+    <div id="error" class="error-msg"></div>
+    <input type="email" id="email" placeholder="Email" autocomplete="username" />
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
     <button onclick="login()">Login</button>
     <div class="link">
       Don't have an account? <a href="signup.html">Sign up</a>
     </div>
   </div>
   <script>
-    const supabase = supabase.createClient('https://thiqiwptecjozwgbepvg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I');
+    const supabaseClient = supabase.createClient(
+      'https://thiqiwptecjozwgbepvg.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I'
+    );
 
     async function login() {
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('error');
+      errorDiv.style.display = "none";
+      errorDiv.textContent = "";
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (!email || !password) {
+        errorDiv.textContent = "Please fill in both email and password.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        alert('Login error: ' + error.message);
+        errorDiv.textContent = "Login error: " + error.message;
+        errorDiv.style.display = "block";
       } else {
         window.location.href = 'index.html';
       }
     }
 
-    // Auto-redirect if already logged in
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) {
         window.location.href = 'index.html';
       }
