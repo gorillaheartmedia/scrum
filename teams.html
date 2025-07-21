@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teams - Scrum App</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin:0; }
+    header {
+      background: #2c3e50; color: #fff; padding: 1rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 0.6rem;
+    }
+    .back-btn {
+      background: #fff; color: #3498db; border: 1px solid #3498db;
+      padding: 0.45rem 1rem; border-radius: 4px; font-weight: bold; font-size: 1rem;
+      cursor: pointer; margin-right: 1.1rem; transition: background 0.18s;
+    }
+    .back-btn:hover { background: #eaf6fb; }
+    .teams-container {
+      max-width: 830px; margin: 2rem auto; background: #fff;
+      border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      padding: 2rem 2.5rem;
+    }
+    h2 { text-align: center; margin-top:0; }
+    .team-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.3rem 1.9rem;
+      margin-bottom: 1.4rem; background: #f7fbff; position: relative;
+    }
+    .team-actions {
+      position: absolute; top: 18px; right: 18px;
+    }
+    .team-title[contenteditable] { border-bottom: 1px dotted #3498db; }
+    .team-title {
+      font-size: 1.2rem; font-weight: bold; margin-bottom: 0.3em; color: #3498db;
+      outline: none; display: inline-block; min-width: 30px;
+    }
+    .team-desc[contenteditable] { border-bottom: 1px dotted #aaa; }
+    .team-desc { color: #444; margin-bottom: 0.6em; outline: none; display: inline-block; min-width: 40px;}
+    .members-table { width: 100%; border-collapse: collapse; margin-top: 0.4em; }
+    .members-table th, .members-table td { padding: 0.32em 0.5em; text-align: left; }
+    .members-table th { background: #ecf6fa; }
+    .members-table tr:nth-child(even) { background: #f8fafc; }
+    .role-select { padding: 0.14em 0.5em; }
+    .invite-form { margin-top: 1.1em; display: flex; gap: 0.8em; align-items: flex-end;}
+    .invite-form input { padding: 0.5em; border-radius: 4px; border: 1px solid #bbb; font-size: 1em;}
+    .invite-form button { padding: 0.4em 1.3em; border-radius: 4px; border: none; background: #3498db; color: #fff; font-weight: bold; cursor: pointer;}
+    .invite-form button:hover { background: #2070ba;}
+    .team-del-btn { background: #e74c3c; color: #fff; border: none; border-radius: 4px; padding: 0.4em 1.2em; margin-left: 1em; font-weight: bold; cursor: pointer;}
+    .team-del-btn:hover { background: #b32213;}
+    .msg { color: #20774f; margin-top: 1em; text-align: center; font-weight: bold;}
+    @media (max-width: 900px) {
+      .teams-container { padding: 1rem 0.3rem;}
+      .team-card { padding: 1.1rem 0.7rem;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="window.location.href='index.html'">⬅ Scrum Board</button>
+    <span style="flex: 1; text-align: center;"><strong>Teams</strong></span>
+    <div style="width:90px;"></div>
+  </header>
+  <div class="teams-container">
+    <h2>Your Teams</h2>
+    <div id="team-list">Loading teams...</div>
+    <form id="add-team-form" class="add-team-form" style="margin-top:2.4rem; background:#f5faff; border:1px solid #b9e5fc; padding:1.2rem; border-radius:7px;">
+      <h3>Create New Team</h3>
+      <input type="text" id="team-name" placeholder="Team Name" maxlength="48" required />
+      <textarea id="team-desc" placeholder="Description (optional)" rows="2"></textarea>
+      <button type="submit">Add Team</button>
+      <div id="add-msg" class="msg" style="display:none;"></div>
+    </form>
+  </div>
+  <script>
+    const supabaseClient = supabase.createClient(
+      'https://thiqiwptecjozwgbepvg.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I'
+    );
+    let currentUser = null;
+    let allTeams = [];
+    let allMembers = {}; // team_id: [memberObj, ...]
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = session.user;
+      await fetchTeams();
+    });
+
+    async function fetchTeams() {
+      // 1. Fetch all teams user is a member of
+      let { data: memberships, error: err1 } = await supabaseClient
+        .from('team_members')
+        .select('team_id, role, team:teams (id, name, description, creator)')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+      if (err1 || !memberships) {
+        document.getElementById('team-list').textContent = "Error loading teams!";
+        return;
+      }
+      // Extract team objects
+      allTeams = memberships.map(m => m.team).filter(Boolean);
+      await fetchAllMembers();
+      renderTeams();
+    }
+
+    async function fetchAllMembers() {
+      allMembers = {};
+      if (!allTeams.length) return;
+      const teamIds = allTeams.map(t => t.id);
+      let { data: members, error } = await supabaseClient
+        .from('team_members')
+        .select('id, team_id, user_id, role, status, invited_email, users (email, user_metadata)')
+        .in('team_id', teamIds);
+      if (!members) return;
+      members.forEach(m => {
+        if (!allMembers[m.team_id]) allMembers[m.team_id] = [];
+        allMembers[m.team_id].push(m);
+      });
+    }
+
+    function sanitize(str) {
+  return str.replace(/<\/?[^>]+(>|$)/g, ""); // Strips all HTML tags
+}
+
+    function renderTeams() {
+      const list = document.getElementById('team-list');
+      if (!allTeams.length) {
+        list.innerHTML = "<em>No teams yet. Create one below!</em>";
+        return;
+      }
+      list.innerHTML = "";
+      allTeams.forEach(team => {
+        const card = document.createElement('div');
+        card.className = "team-card";
+        card.innerHTML = `
+          <div class="team-actions"></div>
+          <div class="team-title" contenteditable="true" spellcheck="false" data-id="${team.id}">${team.name}</div>
+          <div class="team-desc" contenteditable="true" spellcheck="false" data-id="${team.id}">${team.description || '<em>No description</em>'}</div>
+          <div class="team-members-table"></div>
+          <form class="invite-form" data-team="${team.id}">
+            <input type="email" placeholder="Invite by email" required>
+            <select>
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button type="submit">Invite</button>
+            <span class="invite-msg" style="color:#20774f;display:none;margin-left:0.8em;"></span>
+          </form>
+        `;
+        // Members Table
+        let members = allMembers[team.id] || [];
+        let table = `<table class="members-table"><thead><tr>
+          <th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th>
+          </tr></thead><tbody>`;
+        members.forEach(m => {
+          const isYou = m.user_id === currentUser.id;
+          let displayName = m.users?.user_metadata?.username || (m.users?.email?.split('@')[0]) || m.invited_email || '-';
+          let email = m.users?.email || m.invited_email || "-";
+          let status = m.status === 'invited' ? 'Invited' : 'Active';
+          let roleSelector = `<select class="role-select" data-mid="${m.id}" ${isYou && m.role === 'owner' ? "disabled" : ""}>
+            <option value="owner" ${m.role==='owner'?"selected":""}>Owner</option>
+            <option value="admin" ${m.role==='admin'?"selected":""}>Admin</option>
+            <option value="member" ${m.role==='member'?"selected":""}>Member</option>
+          </select>`;
+          // Only owner can delete or transfer
+          let actions = '';
+          if (!isYou) {
+            actions += `<button class="remove-member-btn" data-mid="${m.id}" data-team="${team.id}" style="color:#e74c3c;background:transparent;border:none;cursor:pointer;font-size:1em;">Remove</button>`;
+          } else if (m.role === "owner" && members.length > 1) {
+            actions += `<button class="transfer-ownership-btn" data-team="${team.id}" style="color:#3498db;background:transparent;border:none;cursor:pointer;font-size:1em;">Transfer Ownership</button>`;
+          }
+          table += `<tr>
+            <td>${displayName}${isYou ? " <b>(You)</b>" : ""}</td>
+            <td>${email}</td>
+            <td>${roleSelector}</td>
+            <td>${status}</td>
+            <td>${actions}</td>
+          </tr>`;
+        });
+        table += "</tbody></table>";
+        card.querySelector('.team-members-table').innerHTML = table;
+
+        // Delete team (owner only)
+        const ownerRow = members.find(m => m.role === "owner" && m.user_id === currentUser.id);
+        if (ownerRow) {
+          const delBtn = document.createElement('button');
+          delBtn.textContent = "Delete Team";
+          delBtn.className = "team-del-btn";
+          delBtn.onclick = () => deleteTeam(team.id);
+          card.querySelector('.team-actions').appendChild(delBtn);
+        }
+        list.appendChild(card);
+      });
+      enableTeamEditing();
+      enableRoleChange();
+      enableInvites();
+      enableRemoveMember();
+      enableTransferOwnership();
+    }
+    
+
+    function enableTeamEditing() {
+      document.querySelectorAll('.team-title, .team-desc').forEach(el => {
+        el.addEventListener('blur', async function () {
+          const teamId = this.getAttribute('data-id');
+          const newVal = sanitize(this.textContent.trim());
+          const col = this.classList.contains('team-title') ? 'name' : 'description';
+          await supabaseClient.from('teams').update({ [col]: newVal }).eq('id', teamId);
+        });
+      });
+    }
+
+    function enableRoleChange() {
+      document.querySelectorAll('.role-select').forEach(sel => {
+        sel.onchange = async function() {
+          const memberId = this.getAttribute('data-mid');
+          const newRole = this.value;
+          await supabaseClient.from('team_members').update({ role: newRole }).eq('id', memberId);
+          await fetchTeams();
+        };
+      });
+    }
+
+    function enableInvites() {
+      document.querySelectorAll('.invite-form').forEach(form => {
+        form.onsubmit = async function(e) {
+          e.preventDefault();
+          const teamId = form.getAttribute('data-team');
+          const email = form.querySelector('input[type=email]').value.trim().toLowerCase();
+          const role = form.querySelector('select').value;
+          // Prevent duplicate invites
+          let { data: exists } = await supabaseClient.from('team_members')
+            .select().eq('team_id', teamId).eq('invited_email', email).maybeSingle();
+          if (exists) {
+            showInviteMsg(form, "Already invited.");
+            return;
+          }
+          await supabaseClient.from('team_members').insert([{
+            team_id: teamId, invited_email: email, role, status: 'invited'
+          }]);
+          showInviteMsg(form, "Invitation sent!");
+          await fetchTeams();
+        };
+      });
+    }
+    function showInviteMsg(form, msg) {
+      const span = form.querySelector('.invite-msg');
+      span.textContent = msg;
+      span.style.display = "inline";
+      setTimeout(() => span.style.display = "none", 2200);
+    }
+
+    function enableRemoveMember() {
+      document.querySelectorAll('.remove-member-btn').forEach(btn => {
+        btn.onclick = async function() {
+          const memberId = btn.getAttribute('data-mid');
+          if (confirm('Remove this member from the team?')) {
+            await supabaseClient.from('team_members').delete().eq('id', memberId);
+            await fetchTeams();
+          }
+        };
+      });
+    }
+
+    function enableTransferOwnership() {
+      document.querySelectorAll('.transfer-ownership-btn').forEach(btn => {
+        btn.onclick = async function() {
+          const teamId = btn.getAttribute('data-team');
+          const members = allMembers[teamId] || [];
+          const choices = members.filter(m => m.role !== "owner" && m.status !== "invited");
+          let newOwnerId = prompt("Enter the email of the new owner:");
+          let newOwner = choices.find(m => m.users?.email === newOwnerId);
+          if (!newOwner) {
+            alert("Not found or not eligible.");
+            return;
+          }
+          // Update roles
+          const ownerRow = members.find(m => m.role === "owner");
+          await supabaseClient.from('team_members').update({ role: 'admin' }).eq('id', ownerRow.id);
+          await supabaseClient.from('team_members').update({ role: 'owner' }).eq('id', newOwner.id);
+          await fetchTeams();
+        };
+      });
+    }
+
+    async function deleteTeam(teamId) {
+      if (!confirm("Delete this team? This cannot be undone!")) return;
+      await supabaseClient.from('team_members').delete().eq('team_id', teamId);
+      await supabaseClient.from('teams').delete().eq('id', teamId);
+      await fetchTeams();
+    }
+
+    document.getElementById('add-team-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('team-name').value.trim();
+      const desc = document.getElementById('team-desc').value.trim();
+      if (!name) return;
+      // Create team and add user as owner
+      const { data: team, error } = await supabaseClient
+        .from('teams').insert([{ name, description: desc, creator: currentUser.id }]).select().single();
+      if (error) {
+        showAddMsg("Error: " + error.message);
+        return;
+      }
+      await supabaseClient.from('team_members').insert([{ team_id: team.id, user_id: currentUser.id, role: 'owner', status: 'active' }]);
+      showAddMsg("Team created!");
+      document.getElementById('team-name').value = "";
+      document.getElementById('team-desc').value = "";
+      await fetchTeams();
+    };
+    function showAddMsg(msg) {
+      const m = document.getElementById('add-msg');
+      m.textContent = msg; m.style.display = "block";
+      setTimeout(() => m.style.display = "none", 2000);
+    }
+  </script>
+</body>
+</html>
