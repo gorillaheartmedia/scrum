@@ -20,6 +20,52 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.6rem;
+    }
+    .burndown-btn {
+      background: #fff;
+      color: #3498db;
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-right: 1.1rem;
+      transition: background 0.18s;
+      border: 1px solid #3498db;
+    }
+    .burndown-btn:hover {
+      background: #eaf6fb;
+    }
+    .profile-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin-left: 1.2rem;
+    }
+    .profile-img {
+      width: 37px; height: 37px;
+      border-radius: 50%;
+      background: #ecf0f1;
+      object-fit: cover;
+      border: 2px solid #3498db;
+      margin-right: 0.25rem;
+      box-shadow: 0 1px 5px rgba(52,152,219,0.09);
+    }
+    .username {
+      font-size: 1.05rem;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 1px 2px #26405211;
+      margin-right: 0.6rem;
+      letter-spacing: 0.03em;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+      vertical-align: middle;
     }
     .logout-btn {
       background: #e74c3c;
@@ -29,7 +75,113 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 1rem;
-      margin-left: 1rem;
+      margin-left: 0.2rem;
+      font-weight: bold;
+      transition: background 0.15s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+
+    .profile-modal-backdrop {
+  display: none;
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(44,62,80,0.41);
+  z-index: 50;
+  justify-content: center;
+  align-items: center;
+}
+.profile-modal-backdrop.active {
+  display: flex;
+}
+.profile-modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 2.1rem 2.4rem 1.5rem 2.4rem;
+  max-width: 370px;
+  width: 97vw;
+  text-align: left;
+  box-shadow: 0 4px 24px rgba(44,62,80,0.11);
+  position: relative;
+  animation: popIn 0.34s cubic-bezier(.34,.99,.59,1.23);
+}
+.profile-modal-img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ecf0f1;
+  border: 2px solid #3498db;
+  margin-bottom: 0.7em;
+}
+.small-btn {
+  margin-top: 0.5em;
+  background: #f5f6fa;
+  color: #3498db;
+  border: 1px solid #3498db;
+  border-radius: 5px;
+  padding: 0.2em 0.8em;
+  cursor: pointer;
+  font-size: 1em;
+}
+.profile-save-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5em 1.3em;
+  margin-right: 0.9em;
+  margin-top: 1em;
+  font-weight: bold;
+}
+.profile-close-btn {
+  background: #eee;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5em 1.3em;
+  margin-top: 1em;
+  font-weight: normal;
+}
+@keyframes popIn {
+  0% { transform: scale(0.93) translateY(18px); opacity: 0.13; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+    .legend, .scrum-wizard {
+      padding: 0.5rem 1rem;
+      background-color: white;
+      margin: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+    }
+    .legend span {
+      display: inline-block;
+      margin-right: 1rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+    }
+    .legend .low { background-color: #dfe6e9; }
+    .legend .medium { background-color: #ffeaa7; }
+    .legend .high { background-color: #fab1a0; }
+    .scrum-wizard h2 { margin-top: 0; }
+    .scrum-wizard label { display: block; margin-top: 0.5rem; font-weight: bold; }
+    .scrum-wizard textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    .scrum-wizard button {
+      padding: 0.5rem 1rem;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
     .scrum-history {
       padding: 0.5rem 1rem;
@@ -55,41 +207,6 @@
     .scrum-note-date {
       color: #888;
       font-size: 0.93em;
-    }
-    .legend, .scrum-wizard {
-      padding: 0.5rem 1rem;
-      background-color: white;
-      margin: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 0.9rem;
-    }
-    .legend span {
-      display: inline-block;
-      margin-right: 1rem;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
-    }
-    .legend .low { background-color: #dfe6e9; }
-    .legend .medium { background-color: #ffeaa7; }
-    .legend .high { background-color: #fab1a0; }
-
-    .scrum-wizard h2 { margin-top: 0; }
-    .scrum-wizard label { display: block; margin-top: 0.5rem; font-weight: bold; }
-    .scrum-wizard textarea {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-bottom: 1rem;
-    }
-    .scrum-wizard button {
-      padding: 0.5rem 1rem;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
     }
     .board {
       display: flex;
@@ -158,16 +275,35 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    
     @media (max-width: 600px) {
+      header {
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: stretch;
+      }
+      .profile-wrap {
+        justify-content: flex-end;
+        margin-left: 0;
+      }
       .board { flex-direction: column; }
-      header { flex-direction: column; gap: 1rem; }
     }
   </style>
 </head>
 <body>
   <header>
-    <span><strong>Scrum Board & Backlog</strong></span>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <button class="burndown-btn" onclick="window.location.href='burndown.html'">Burndown Chart</button>
+    <span style="flex: 1; text-align: center;"><strong>Scrum Board & Backlog</strong></span>
+    <div class="profile-wrap">
+      <div style="min-width: 180px;">
+  <select id="team-switcher" style="padding: 0.4rem 0.7rem; border-radius: 5px; border: 1px solid #3498db; font-size: 1rem;">
+    <option>Loading teams...</option>
+  </select>
+</div>
+      <img id="profile-img" class="profile-img" src="https://ui-avatars.com/api/?background=3498db&color=fff&name=User" alt="Profile" />
+      <span id="username" class="username">User</span>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
   </header>
   <div class="legend">
     <strong>Legend:</strong>
@@ -228,318 +364,499 @@
     </section>
   </main>
 
+   <!-- Profile Modal -->
+<div id="profile-modal" class="profile-modal-backdrop">
+  <div class="profile-modal-content">
+    <h3>Profile</h3>
+    <div style="text-align:center;">
+      <img id="modal-profile-img" src="" alt="Profile" class="profile-modal-img" />
+      <br>
+      <input type="file" id="profile-upload" style="display:none;" accept="image/*" />
+      <button id="change-pic-btn" class="small-btn" type="button">Change Photo</button>
+    </div>
+    <form id="profile-form" style="margin-top:1.3em;">
+      <label>Username</label>
+      <input id="modal-username" type="text" minlength="3" maxlength="18" pattern="^[a-zA-Z0-9_]+$" />
+      <div style="margin:0.4em 0 0.9em 0;color:#888;font-size:0.93em;">
+        (3-18 chars, letters/numbers/underscores)
+      </div>
+      <label>Email</label>
+      <input id="modal-email" type="email" disabled />
+      <div id="profile-save-msg" style="color:#20774f;margin:0.5em 0;font-size:1em;display:none;">Saved!</div>
+      <div id="profile-error-msg" style="color:#e74c3c;margin:0.5em 0;font-size:1em;display:none;"></div>
+      <button type="submit" class="profile-save-btn">Save Changes</button>
+      <button type="button" class="profile-close-btn" onclick="closeProfileModal()">Close</button>
+    </form>
+  </div>
+</div>
   <script>
-    // --- Supabase Setup & Session Check ---
-    const supabaseClient = supabase.createClient('https://thiqiwptecjozwgbepvg.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I');
-    let currentUser = null;
-    let boardData = { backlog: [], todo: [], inprogress: [], done: [] };
-    let allScrumNotes = [];
+    const supabaseClient = supabase.createClient(
+  'https://thiqiwptecjozwgbepvg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I'
+);
+let currentUser = null;
+let boardData = { backlog: [], todo: [], inprogress: [], done: [] };
+let allScrumNotes = [];
+let userTeams = [];
+let selectedTeamId = null;
+let lastProfileMeta = null;
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Check session
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        window.location.href = 'login.html';
-        return;
-      }
-      currentUser = session.user;
-      await fetchBoardFromSupabase();
-      await loadLatestScrumNote();
-      await loadScrumNotesHistory();
-      subscribeToTaskChanges();
-      subscribeToScrumNotesChanges();
+// On page load
+document.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    window.location.href = 'login.html';
+    return;
+  }
+  currentUser = session.user;
+
+  // Profile info in header
+  const user = currentUser;
+  const meta = user.user_metadata || {};
+  const username = meta.username || (user.email ? user.email.split('@')[0] : "User");
+  document.getElementById('username').textContent = username;
+  document.getElementById('profile-img').src =
+    meta.avatar_url
+      ? meta.avatar_url
+      : `https://ui-avatars.com/api/?background=3498db&color=fff&name=${encodeURIComponent(username)}`;
+
+  await loadTeamsAndInitBoard();
+  await fetchBoardFromSupabase();
+  await loadLatestScrumNote();
+  await loadScrumNotesHistory();
+  subscribeToTaskChanges();
+  subscribeToScrumNotesChanges();
+});
+
+// --- LOGOUT (must be global for button onclick) ---
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = 'login.html';
+}
+
+// --- Board logic ---
+async function fetchBoardFromSupabase() {
+  if (!selectedTeamId) {
+    // Clear board columns
+    ['backlog','todo','inprogress','done'].forEach(col => {
+      document.getElementById(col).innerHTML = '';
     });
+    // Show friendly message in the backlog column
+    document.getElementById('backlog').innerHTML =
+      "<em>No teams found.<br>Please create or join a team to use the Scrum board.</em>" +
+      "<br><a href='teams.html'><button style='margin-top:1em;'>Create a Team</button></a>";
+    return;
+  }
+  const { data, error } = await supabaseClient
+    .from('tasks')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .eq('team_id', selectedTeamId);
 
-    // --- Real-Time Subscriptions ---
-    function subscribeToTaskChanges() {
-      supabaseClient
-        .channel('public:tasks')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${currentUser.id}` },
-          payload => {
-            fetchBoardFromSupabase();
-          }
-        )
-        .subscribe();
-    }
+  boardData = { backlog: [], todo: [], inprogress: [], done: [] };
 
-    function subscribeToScrumNotesChanges() {
-      supabaseClient
-        .channel('public:scrum_notes')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'scrum_notes', filter: `user_id=eq.${currentUser.id}` },
-          payload => {
-            loadScrumNotesHistory();
-            loadLatestScrumNote();
-          }
-        )
-        .subscribe();
-    }
+  if (data) {
+    data.forEach(task => {
+      if (boardData[task.status]) boardData[task.status].push(task);
+    });
+    Object.keys(boardData).forEach(col => {
+      boardData[col].sort((a, b) => b.priority - a.priority);
+    });
+  }
+  renderBoard();
+}
 
-    // --- Scrum Board ---
-    async function fetchBoardFromSupabase() {
-      const { data, error } = await supabaseClient
-        .from('tasks')
-        .select('*')
-        .eq('user_id', currentUser.id);
+function renderBoard() {
+  Object.keys(boardData).forEach(column => {
+    const list = document.getElementById(column);
+    list.innerHTML = '';
+    boardData[column].forEach((task, index) => {
+      const taskEl = document.createElement('div');
+      taskEl.className = `task priority-${task.priority}`;
+      taskEl.draggable = true;
 
-      boardData = { backlog: [], todo: [], inprogress: [], done: [] };
-
-      if (data) {
-        data.forEach(task => {
-          if (boardData[task.status]) boardData[task.status].push(task);
-        });
-        Object.keys(boardData).forEach(col => {
-          boardData[col].sort((a, b) => b.priority - a.priority);
-        });
-      }
-      renderBoard();
-    }
-
-    function renderBoard() {
-      Object.keys(boardData).forEach(column => {
-        const list = document.getElementById(column);
-        list.innerHTML = '';
-        boardData[column].forEach((task, index) => {
-          const taskEl = document.createElement('div');
-          taskEl.className = `task priority-${task.priority}`;
-          taskEl.draggable = true;
-
-          const taskText = document.createElement('span');
-          taskText.textContent = task.text;
-          taskText.contentEditable = true;
-          taskText.addEventListener('blur', async () => {
-            task.text = taskText.textContent.trim();
-            await supabaseClient.from('tasks').update({ text: task.text }).eq('id', task.id);
-            fetchBoardFromSupabase();
-          });
-
-          const stars = document.createElement('span');
-          stars.className = 'stars';
-          stars.innerHTML = getStarsHTML(task.priority);
-          stars.addEventListener('click', async e => {
-            const clickedStar = [...stars.children].indexOf(e.target) + 1;
-            task.priority = clickedStar;
-            await supabaseClient.from('tasks').update({ priority: clickedStar }).eq('id', task.id);
-            fetchBoardFromSupabase();
-          });
-
-          const delBtn = document.createElement('button');
-          delBtn.textContent = '🗑';
-          delBtn.style.marginLeft = '8px';
-          delBtn.onclick = async () => {
-            await supabaseClient.from('tasks').delete().eq('id', task.id);
-            fetchBoardFromSupabase();
-          };
-
-          taskEl.appendChild(taskText);
-          taskEl.appendChild(stars);
-          taskEl.appendChild(delBtn);
-
-          taskEl.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('text/plain', `${column},${index}`);
-          });
-
-          list.appendChild(taskEl);
-        });
-
-        list.ondragover = e => e.preventDefault();
-        list.ondrop = async e => {
-          const [fromColumn, fromIndex] = e.dataTransfer.getData('text/plain').split(',');
-          const task = boardData[fromColumn][fromIndex];
-          await supabaseClient.from('tasks').update({ status: column }).eq('id', task.id);
-          fetchBoardFromSupabase();
-        };
-      });
-    }
-
-    function getStarsHTML(priority) {
-      let html = '';
-      for (let i = 1; i <= 3; i++) {
-        html += `<span>${i <= priority ? '★' : '☆'}</span>`;
-      }
-      return html;
-    }
-
-    async function addTask(column) {
-      const input = document.querySelector(`[data-column="${column}"] input`);
-      const text = input.value.trim();
-      if (text) {
-        await supabaseClient.from('tasks').insert([{
-          text,
-          priority: 1,
-          status: column,
-          user_id: currentUser.id
-        }]);
-        input.value = '';
+      const taskText = document.createElement('span');
+      taskText.textContent = task.text;
+      taskText.contentEditable = true;
+      taskText.addEventListener('blur', async () => {
+        task.text = taskText.textContent.trim();
+        await supabaseClient.from('tasks').update({ text: task.text }).eq('id', task.id);
         fetchBoardFromSupabase();
-      }
-    }
-
-    // --- Scrum Wizard ---
-    async function saveDailyScrum() {
-      const yesterday = document.getElementById('yesterday').value.trim();
-      const today = document.getElementById('today').value.trim();
-      const blockers = document.getElementById('blockers').value.trim();
-
-      const dateStr = new Date().toISOString().slice(0, 10);
-
-      const { data: existing, error: fetchErr } = await supabaseClient
-        .from('scrum_notes')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .gte('created_at', dateStr + 'T00:00:00.000Z')
-        .lt('created_at', dateStr + 'T23:59:59.999Z')
-        .maybeSingle();
-
-      if (existing && existing.id) {
-        await supabaseClient
-          .from('scrum_notes')
-          .update({ yesterday, today, blockers })
-          .eq('id', existing.id);
-        alert("Today's scrum notes updated!");
-      } else {
-        await supabaseClient.from('scrum_notes').insert([{
-          user_id: currentUser.id,
-          yesterday, today, blockers
-        }]);
-        alert("Today's scrum notes saved!");
-      }
-      await loadLatestScrumNote();
-      await loadScrumNotesHistory();
-    }
-
-    async function loadLatestScrumNote() {
-      const { data, error } = await supabaseClient
-        .from('scrum_notes')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (data) {
-        document.getElementById('yesterday').value = data.yesterday || '';
-        document.getElementById('today').value = data.today || '';
-        document.getElementById('blockers').value = data.blockers || '';
-      }
-    }
-
-    // --- Scrum History: load, search, and edit ---
-    async function loadScrumNotesHistory() {
-      const notesListDiv = document.getElementById('scrum-notes-list');
-      notesListDiv.textContent = 'Loading...';
-
-      const { data, error } = await supabaseClient
-        .from('scrum_notes')
-        .select('*')
-        .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        notesListDiv.textContent = 'Error loading history!';
-        return;
-      }
-      if (!data || data.length === 0) {
-        notesListDiv.textContent = 'No scrum notes found.';
-        return;
-      }
-
-      allScrumNotes = data; // Store for search/filter use
-      renderScrumNotesList(data);
-    }
-
-    function renderScrumNotesList(notes) {
-      const notesListDiv = document.getElementById('scrum-notes-list');
-      notesListDiv.innerHTML = '';
-
-      notes.forEach(note => {
-        const entry = document.createElement('div');
-        entry.className = 'scrum-note-entry';
-        const date = new Date(note.created_at).toLocaleString();
-
-        entry.innerHTML = `
-          <div class="scrum-note-date">${date}</div>
-          <div><strong>Yesterday:</strong> <span class="note-yesterday">${escapeHTML(note.yesterday || '-')}</span></div>
-          <div><strong>Today:</strong> <span class="note-today">${escapeHTML(note.today || '-')}</span></div>
-          <div><strong>Blockers:</strong> <span class="note-blockers">${escapeHTML(note.blockers || '-')}</span></div>
-          <button class="edit-scrum-btn" data-id="${note.id}" style="margin-top:0.5em;">Edit</button>
-        `;
-        notesListDiv.appendChild(entry);
       });
 
-      document.querySelectorAll('.edit-scrum-btn').forEach(btn => {
-        btn.onclick = () => startEditScrumNote(btn.getAttribute('data-id'));
+      const stars = document.createElement('span');
+      stars.className = 'stars';
+      stars.innerHTML = getStarsHTML(task.priority);
+      stars.addEventListener('click', async e => {
+        const clickedStar = [...stars.children].indexOf(e.target) + 1;
+        task.priority = clickedStar;
+        await supabaseClient.from('tasks').update({ priority: clickedStar }).eq('id', task.id);
+        fetchBoardFromSupabase();
       });
-    }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchBox = document.getElementById('scrum-search');
-      if (searchBox) {
-        searchBox.addEventListener('input', function () {
-          const q = this.value.toLowerCase();
-          const filtered = allScrumNotes.filter(note =>
-            (note.yesterday && note.yesterday.toLowerCase().includes(q)) ||
-            (note.today && note.today.toLowerCase().includes(q)) ||
-            (note.blockers && note.blockers.toLowerCase().includes(q))
-          );
-          renderScrumNotesList(filtered);
-        });
-      }
-    });
-
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, function (m) {
-        return ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        })[m];
-      });
-    }
-
-    function startEditScrumNote(noteId) {
-      const note = allScrumNotes.find(n => n.id === noteId);
-      if (!note) return;
-      const notesListDiv = document.getElementById('scrum-notes-list');
-      notesListDiv.innerHTML = '';
-
-      // Show editable form for this note
-      const entry = document.createElement('div');
-      entry.className = 'scrum-note-entry';
-      const date = new Date(note.created_at).toLocaleString();
-
-      entry.innerHTML = `
-        <div class="scrum-note-date">${date}</div>
-        <div><strong>Yesterday:</strong><br><textarea id="edit-yesterday" rows="2" style="width:100%">${escapeHTML(note.yesterday || '')}</textarea></div>
-        <div><strong>Today:</strong><br><textarea id="edit-today" rows="2" style="width:100%">${escapeHTML(note.today || '')}</textarea></div>
-        <div><strong>Blockers:</strong><br><textarea id="edit-blockers" rows="2" style="width:100%">${escapeHTML(note.blockers || '')}</textarea></div>
-        <button id="save-edit-btn" style="margin-top:0.7em;">Save</button>
-        <button id="cancel-edit-btn" style="margin-top:0.7em;margin-left:0.7em;">Cancel</button>
-      `;
-      notesListDiv.appendChild(entry);
-
-      document.getElementById('save-edit-btn').onclick = async () => {
-        const updated = {
-          yesterday: document.getElementById('edit-yesterday').value,
-          today: document.getElementById('edit-today').value,
-          blockers: document.getElementById('edit-blockers').value
-        };
-        await supabaseClient.from('scrum_notes').update(updated).eq('id', noteId);
-        await loadScrumNotesHistory();
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '🗑';
+      delBtn.style.marginLeft = '8px';
+      delBtn.onclick = async () => {
+        await supabaseClient.from('tasks').delete().eq('id', task.id);
+        fetchBoardFromSupabase();
       };
 
-      document.getElementById('cancel-edit-btn').onclick = loadScrumNotesHistory;
-    }
+      taskEl.appendChild(taskText);
+      taskEl.appendChild(stars);
+      taskEl.appendChild(delBtn);
 
-    async function logout() {
-      await supabaseClient.auth.signOut();
-      window.location.href = 'login.html';
-    }
+      taskEl.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', `${column},${index}`);
+      });
+
+      list.appendChild(taskEl);
+    });
+
+    list.ondragover = e => e.preventDefault();
+    list.ondrop = async e => {
+      const [fromColumn, fromIndex] = e.dataTransfer.getData('text/plain').split(',');
+      const task = boardData[fromColumn][fromIndex];
+      await supabaseClient.from('tasks').update({ status: column }).eq('id', task.id);
+      fetchBoardFromSupabase();
+    };
+  });
+}
+
+function getStarsHTML(priority) {
+  let html = '';
+  for (let i = 1; i <= 3; i++) {
+    html += `<span>${i <= priority ? '★' : '☆'}</span>`;
+  }
+  return html;
+}
+
+async function addTask(column) {
+  const input = document.querySelector(`[data-column="${column}"] input`);
+  const text = input.value.trim();
+  if (text) {
+    await supabaseClient.from('tasks').insert([{
+      text,
+      priority: 1,
+      status: column,
+      user_id: currentUser.id,
+      team_id: selectedTeamId
+    }]);
+    input.value = '';
+    fetchBoardFromSupabase();
+  }
+}
+
+// --- Scrum notes ---
+async function saveDailyScrum() {
+  const yesterday = document.getElementById('yesterday').value.trim();
+  const today = document.getElementById('today').value.trim();
+  const blockers = document.getElementById('blockers').value.trim();
+
+  const dateStr = new Date().toISOString().slice(0, 10);
+
+  const { data: existing } = await supabaseClient
+    .from('scrum_notes')
+    .select('id')
+    .eq('user_id', currentUser.id)
+    .gte('created_at', dateStr + 'T00:00:00.000Z')
+    .lt('created_at', dateStr + 'T23:59:59.999Z')
+    .maybeSingle();
+
+  if (existing && existing.id) {
+    await supabaseClient
+      .from('scrum_notes')
+      .update({ yesterday, today, blockers })
+      .eq('id', existing.id);
+    alert("Today's scrum notes updated!");
+  } else {
+    await supabaseClient.from('scrum_notes').insert([{
+      user_id: currentUser.id,
+      yesterday, today, blockers
+    }]);
+    alert("Today's scrum notes saved!");
+  }
+  await loadLatestScrumNote();
+  await loadScrumNotesHistory();
+}
+
+async function loadLatestScrumNote() {
+  const { data } = await supabaseClient
+    .from('scrum_notes')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (data) {
+    document.getElementById('yesterday').value = data.yesterday || '';
+    document.getElementById('today').value = data.today || '';
+    document.getElementById('blockers').value = data.blockers || '';
+  }
+}
+
+async function loadScrumNotesHistory() {
+  if (!selectedTeamId) {
+    document.getElementById('scrum-notes-list').innerHTML =
+      "<em>No teams found.<br>Please create or join a team to see scrum notes.</em>";
+    return;
+  }
+  const notesListDiv = document.getElementById('scrum-notes-list');
+  notesListDiv.textContent = 'Loading...';
+
+  const { data, error } = await supabaseClient
+    .from('scrum_notes')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    notesListDiv.textContent = 'Error loading history!';
+    return;
+  }
+  if (!data || data.length === 0) {
+    notesListDiv.textContent = 'No scrum notes found.';
+    return;
+  }
+
+  allScrumNotes = data;
+  renderScrumNotesList(data);
+}
+
+function renderScrumNotesList(notes) {
+  const notesListDiv = document.getElementById('scrum-notes-list');
+  notesListDiv.innerHTML = '';
+
+  notes.forEach(note => {
+    const entry = document.createElement('div');
+    entry.className = 'scrum-note-entry';
+    const date = new Date(note.created_at).toLocaleString();
+
+    entry.innerHTML = `
+      <div class="scrum-note-date">${date}</div>
+      <div><strong>Yesterday:</strong> <span class="note-yesterday">${escapeHTML(note.yesterday || '-')}</span></div>
+      <div><strong>Today:</strong> <span class="note-today">${escapeHTML(note.today || '-')}</span></div>
+      <div><strong>Blockers:</strong> <span class="note-blockers">${escapeHTML(note.blockers || '-')}</span></div>
+      <button class="edit-scrum-btn" data-id="${note.id}" style="margin-top:0.5em;">Edit</button>
+    `;
+    notesListDiv.appendChild(entry);
+  });
+
+  document.querySelectorAll('.edit-scrum-btn').forEach(btn => {
+    btn.onclick = () => startEditScrumNote(btn.getAttribute('data-id'));
+  });
+}
+
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function (m) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[m];
+  });
+}
+
+function startEditScrumNote(noteId) {
+  const note = allScrumNotes.find(n => n.id === noteId);
+  if (!note) return;
+  const notesListDiv = document.getElementById('scrum-notes-list');
+  notesListDiv.innerHTML = '';
+
+  const entry = document.createElement('div');
+  entry.className = 'scrum-note-entry';
+  const date = new Date(note.created_at).toLocaleString();
+
+  entry.innerHTML = `
+    <div class="scrum-note-date">${date}</div>
+    <div><strong>Yesterday:</strong><br><textarea id="edit-yesterday" rows="2" style="width:100%">${escapeHTML(note.yesterday || '')}</textarea></div>
+    <div><strong>Today:</strong><br><textarea id="edit-today" rows="2" style="width:100%">${escapeHTML(note.today || '')}</textarea></div>
+    <div><strong>Blockers:</strong><br><textarea id="edit-blockers" rows="2" style="width:100%">${escapeHTML(note.blockers || '')}</textarea></div>
+    <button id="save-edit-btn" style="margin-top:0.7em;">Save</button>
+    <button id="cancel-edit-btn" style="margin-top:0.7em;margin-left:0.7em;">Cancel</button>
+  `;
+  notesListDiv.appendChild(entry);
+
+  document.getElementById('save-edit-btn').onclick = async () => {
+    const updated = {
+      yesterday: document.getElementById('edit-yesterday').value,
+      today: document.getElementById('edit-today').value,
+      blockers: document.getElementById('edit-blockers').value
+    };
+    await supabaseClient.from('scrum_notes').update(updated).eq('id', noteId);
+    await loadScrumNotesHistory();
+  };
+
+  document.getElementById('cancel-edit-btn').onclick = loadScrumNotesHistory;
+}
+
+// --- Team loading and switcher ---
+async function loadTeamsAndInitBoard() {
+  let { data: memberships } = await supabaseClient
+    .from('team_members')
+    .select('team_id, team:teams(id, name)')
+    .eq('user_id', currentUser.id)
+    .eq('status', 'active');
+
+  userTeams = (memberships || []).map(m => m.team);
+  const switcher = document.getElementById('team-switcher');
+  switcher.innerHTML = "";
+  if (userTeams.length === 0) {
+    switcher.innerHTML = "<option>No teams</option>";
+    selectedTeamId = null;
+    return;
+  }
+
+  selectedTeamId = localStorage.getItem('selectedTeamId') || userTeams[0].id;
+  userTeams.forEach(team => {
+    const opt = document.createElement('option');
+    opt.value = team.id;
+    opt.textContent = team.name;
+    if (team.id === selectedTeamId) opt.selected = true;
+    switcher.appendChild(opt);
+  });
+
+  switcher.onchange = function() {
+    selectedTeamId = this.value;
+    localStorage.setItem('selectedTeamId', selectedTeamId);
+    fetchBoardFromSupabase();
+    loadScrumNotesHistory();
+  };
+}
+
+// --- Profile Modal Logic ---
+document.getElementById('profile-img').style.cursor = "pointer";
+document.getElementById('profile-img').onclick = openProfileModal;
+
+function openProfileModal() {
+  const user = currentUser;
+  const meta = user.user_metadata || {};
+  lastProfileMeta = meta;
+
+  document.getElementById('modal-profile-img').src = meta.avatar_url
+    ? meta.avatar_url
+    : `https://ui-avatars.com/api/?background=3498db&color=fff&name=${encodeURIComponent(meta.username || (user.email ? user.email.split('@')[0] : "User"))}`;
+  document.getElementById('modal-username').value = meta.username || (user.email ? user.email.split('@')[0] : "");
+  document.getElementById('modal-email').value = user.email || "";
+
+  document.getElementById('profile-save-msg').style.display = "none";
+  document.getElementById('profile-error-msg').style.display = "none";
+  document.getElementById('profile-modal').classList.add('active');
+}
+
+document.getElementById('change-pic-btn').onclick = () => {
+  document.getElementById('profile-upload').click();
+};
+
+document.getElementById('profile-upload').onchange = async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showProfileError("File must be an image.");
+    return;
+  }
+  // Optional: Limit file size
+  if (file.size > 2 * 1024 * 1024) {
+    showProfileError("Image too large (max 2MB).");
+    return;
+  }
+  // Generate a unique filename (user id + extension)
+  const ext = file.name.split('.').pop();
+  const filename = `${currentUser.id}.${ext}`;
+
+  // Upload to Supabase Storage
+  let { error: uploadError } = await supabaseClient
+    .storage
+    .from('avatars')
+    .upload(filename, file, { upsert: true });
+
+  if (uploadError) {
+    showProfileError("Upload failed: " + uploadError.message);
+    return;
+  }
+
+  // Get public URL
+  const { data } = supabaseClient
+    .storage
+    .from('avatars')
+    .getPublicUrl(filename);
+
+  const avatarUrl = data.publicUrl;
+
+  // Update user metadata with the public avatar URL
+  const { error: updateError } = await supabaseClient.auth.updateUser({
+    data: { ...lastProfileMeta, avatar_url: avatarUrl }
+  });
+  if (updateError) showProfileError(updateError.message);
+  else showProfileMsg("Profile photo updated!");
+
+  // Update profile images on the page
+  document.getElementById('modal-profile-img').src = avatarUrl;
+  document.getElementById('profile-img').src = avatarUrl;
+};
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.remove('active');
+}
+function showProfileMsg(msg) {
+  document.getElementById('profile-save-msg').style.display = "block";
+  document.getElementById('profile-save-msg').textContent = msg;
+  document.getElementById('profile-error-msg').style.display = "none";
+}
+function showProfileError(msg) {
+  document.getElementById('profile-error-msg').style.display = "block";
+  document.getElementById('profile-error-msg').textContent = msg;
+  document.getElementById('profile-save-msg').style.display = "none";
+}
+
+// --- Real-time updates ---
+function subscribeToTaskChanges() {
+  supabaseClient
+    .channel('public:tasks')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${currentUser.id}` },
+      payload => {
+        fetchBoardFromSupabase();
+      }
+    )
+    .subscribe();
+}
+
+function subscribeToScrumNotesChanges() {
+  supabaseClient
+    .channel('public:scrum_notes')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'scrum_notes', filter: `user_id=eq.${currentUser.id}` },
+      payload => {
+        loadScrumNotesHistory();
+        loadLatestScrumNote();
+      }
+    )
+    .subscribe();
+}
+
+// --- Search filter for scrum notes ---
+document.addEventListener('DOMContentLoaded', () => {
+  const searchBox = document.getElementById('scrum-search');
+  if (searchBox) {
+    searchBox.addEventListener('input', function () {
+      const q = this.value.toLowerCase();
+      const filtered = allScrumNotes.filter(note =>
+        (note.yesterday && note.yesterday.toLowerCase().includes(q)) ||
+        (note.today && note.today.toLowerCase().includes(q)) ||
+        (note.blockers && note.blockers.toLowerCase().includes(q))
+      );
+      renderScrumNotesList(filtered);
+    });
+  }
+});
+
   </script>
+
 </body>
 </html>
