@@ -118,11 +118,19 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoaXFpd3B0ZWNqb3p3Z2JlcHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjU3NzYsImV4cCI6MjA2ODYwMTc3Nn0.-sHNcMu5YmSYwuPI4Ukae-22Nr7vGBcAXVEVDYjzG3I'
     );
 
-    const SPRINT_LENGTH_DAYS = 7; // Adjust as needed
-    const SPRINT_START = new Date('2025-07-15T00:00:00');
-    SPRINT_START.setHours(0,0,0,0);
-    const SPRINT_END = new Date(SPRINT_START);
-    SPRINT_END.setDate(SPRINT_START.getDate() + SPRINT_LENGTH_DAYS - 1);
+// Instead of hardcoded dates, fetch from Supabase
+const { data: sprints } = await supabaseClient
+  .from('sprints')
+  .select('*')
+  .eq('team_id', currentTeamId)
+  .order('start', { ascending: false })
+  .limit(1);
+if (sprints && sprints.length) {
+  const SPRINT_START = new Date(sprints[0].start);
+  const SPRINT_END = new Date(sprints[0].end);
+  // Use these for chart
+}
+
 
     document.addEventListener('DOMContentLoaded', async () => {
       // Auth check
